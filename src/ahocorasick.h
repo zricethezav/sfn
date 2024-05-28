@@ -1,11 +1,11 @@
 #ifndef AHOCORASICK_H
 #define AHOCORASICK_H
 
-#include "string.h"
-#include "stdlib.h"
-#include "unistd.h"
-#include "stdio.h"
-#include "ctype.h"
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <ctype.h>
 
 #define MAX_CHARS 256
 

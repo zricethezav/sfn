@@ -6,7 +6,7 @@
 #include "toml.h"
 #include "uthash.h"
 #include "util.h"
-#include <oniguruma.h>
+#include "oniguruma.h"
 
 #define CASE_INSENSITIVE 1
 

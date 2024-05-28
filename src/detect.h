@@ -3,13 +3,14 @@
 
 #include "config.h"
 #include "util.h"
-#include "ctype.h"
-#include "math.h"
-#include "sys/stat.h"
 #include "toml.h"
+#include "oniguruma.h"
 #include "uthash.h"
+
 #include <dirent.h>
-#include <oniguruma.h>
+#include <ctype.h>
+#include <math.h>
+#include <sys/stat.h>
 
 typedef struct
 {

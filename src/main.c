@@ -1,21 +1,21 @@
 #include "config.h"
-#include "ctype.h"
-#include "math.h"
-#include "sys/stat.h"
 #include "toml.h"
 #include "detect.h"
+#include "oniguruma.h"
+#include "uthash.h"
+#include "util.h"
+
+#include <ctype.h>
+#include <math.h>
 #include <dirent.h>
-#include <oniguruma.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
-#include "semaphore.h"
+#include <semaphore.h>
 #include <pthread.h>
 #include <stdbool.h>
-#include "uthash.h"
-#include "util.h"
 
 #define CHUNK_SIZE 10 * KB
 #define OVERLAP_SIZE 3 * KB

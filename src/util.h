@@ -1,10 +1,11 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#include "stdlib.h"
-#include "string.h"
 #include "uthash.h"
-#include "math.h"
+
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
 #include <ctype.h>
 
 #define KB 1024
