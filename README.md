@@ -1,6 +1,6 @@
 # sfn
 
-Secrets Fast Now is a shitty gitleaks port to C. It's wicked fast tho because of oniguruma and no GC? Who can say? Computers are magic.
+Secrets Fast Now is a shitty gitleaks port to C. It's wicked fast tho because of oniguruma and no GC? Who can say? Computers are magic. Lotta inspiration came from `ag`, the silver searcher. Code is messy, but so is my brain.
 
 ### Why did you make this? You should be adding features to gitleaks...
 
