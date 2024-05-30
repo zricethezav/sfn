@@ -175,26 +175,104 @@ void load_config(const char *path)
             free(keyword.u.s);
         }
 
-        toml_array_t *sw = toml_array_in(rule_d, "stopwords");
+        // traverse the allowlist table if it exists
+        toml_table_t *allowlist_d = toml_table_in(rule_d, "allowlist");
         char **stopwords = NULL;
         int num_stopwords = 0;
-        if (sw)
+        toml_array_t *sw = NULL;
+
+        char **paths = NULL;
+        int num_paths = 0;
+
+        char **regexes = NULL;
+        OnigRegex **compiled_regexes = NULL;
+        int num_regexes = 0;
+
+        toml_array_t *p = NULL;
+        toml_array_t *res = NULL;
+
+        if (allowlist_d)
         {
-            num_stopwords = toml_array_nelem(sw);
-            if (num_stopwords > 0)
+            printf("Found allowlist!\n");
+            sw = toml_array_in(allowlist_d, "stopwords");
+            if (sw)
             {
-                stopwords = malloc(num_stopwords * sizeof(char *));
-                if (stopwords == NULL)
+                num_stopwords = toml_array_nelem(sw);
+                if (num_stopwords > 0)
                 {
-                    LOG_ERROR("Failed to allocate memory for stopword pointers");
-                    continue;
+                    stopwords = malloc(num_stopwords * sizeof(char *));
+                    if (stopwords == NULL)
+                    {
+                        LOG_ERROR("Failed to allocate memory for stopword pointers");
+                        continue;
+                    }
+
+                    for (int j = 0; j < num_stopwords; j++)
+                    {
+                        toml_datum_t stopword = toml_string_at(sw, j);
+                        stopwords[j] = strdup(stopword.u.s);
+                        free(stopword.u.s);
+                    }
+                }
+            }
+            p = toml_array_in(allowlist_d, "paths");
+            if (p)
+            {
+                num_paths = toml_array_nelem(p);
+                if (num_paths > 0)
+                {
+                    paths = malloc(num_paths * sizeof(char *));
+                    if (paths == NULL)
+                    {
+                        LOG_ERROR("Failed to allocate memory for paths pointers");
+                        continue;
+                    }
+
+                    for (int j = 0; j < num_paths; j++)
+                    {
+                        toml_datum_t path = toml_string_at(p, j);
+                        paths[j] = strdup(path.u.s);
+                        free(path.u.s);
+                    }
+                }
+            }
+
+            res = toml_array_in(allowlist_d, "regexes");
+            if (res)
+            {
+                // printf("Found stopwords!\n");
+                num_regexes = toml_array_nelem(res);
+                if (num_regexes > 0)
+                {
+                    regexes = malloc(num_regexes * sizeof(char *));
+                    if (regexes == NULL)
+                    {
+                        LOG_ERROR("Failed to allocate memory for allowlist regexes");
+                        continue;
+                    }
+
+                    for (int j = 0; j < num_regexes; j++)
+                    {
+                        toml_datum_t regex = toml_string_at(res, j);
+                        regexes[j] = strdup(regex.u.s);
+                        free(regex.u.s);
+                    }
                 }
 
-                for (int j = 0; j < num_stopwords; j++)
+                compiled_regexes = malloc(num_regexes * sizeof(OnigRegex *));
+                for (int j = 0; j < num_regexes; j++)
                 {
-                    toml_datum_t stopword = toml_string_at(sw, j);
-                    stopwords[j] = strdup(stopword.u.s);
-                    free(stopword.u.s);
+                    printf("allowlist regexes: %s\n", regexes[j]);
+                    OnigErrorInfo einfo;
+                    int r = onig_new(&compiled_regexes[j], (OnigUChar *)regexes[j], (OnigUChar *)(regexes[j] + strlen(regexes[j])),
+                                     ONIG_OPTION_DEFAULT, ONIG_ENCODING_UTF8, ONIG_SYNTAX_DEFAULT, &einfo);
+                    if (r != ONIG_NORMAL)
+                    {
+                        char s[ONIG_MAX_ERROR_MESSAGE_LEN];
+                        onig_error_code_to_str((OnigUChar *)s, r, &einfo);
+                        LOG_WARNING("Regex compilation failed: %s for rule %s", s, id);
+                        return;
+                    }
                 }
             }
         }
@@ -243,23 +321,52 @@ void load_config(const char *path)
             rule->num_keywords = num_keywords;
         }
 
+        // Set up allowlist
+        allowlist_t *allowlist = (allowlist_t *)malloc(sizeof(allowlist_t));
+
         // Set up stop words
         if (num_stopwords > 0)
         {
-            rule->stopwords = (char **)malloc(num_stopwords * sizeof(char *));
-            if (rule->stopwords == NULL)
+            allowlist->stopwords = (char **)malloc(num_stopwords * sizeof(char *));
+            if (allowlist->stopwords == NULL)
             {
                 LOG_WARNING("Failed to allocate memory for stopwords");
                 return;
             }
             for (int i = 0; i < num_stopwords; i++)
             {
-                rule->stopwords[i] = strdup(stopwords[i]);
-                to_lower_case(rule->stopwords[i]);
+                allowlist->stopwords[i] = strdup(stopwords[i]);
+                to_lower_case(allowlist->stopwords[i]);
             }
-            rule->num_stopwords = num_stopwords;
+            allowlist->num_stopwords = num_stopwords;
+        }
+        // Set up regex allows
+        if (num_regexes > 0)
+        {
+            allowlist->compiled_regexes = compiled_regexes;
+            allowlist->num_regexes = num_regexes;
         }
 
+        // Set up paths
+        if (num_paths > 0)
+        {
+            allowlist->paths = (char **)malloc(num_paths * sizeof(char *));
+            if (allowlist->paths == NULL)
+            {
+                LOG_WARNING("Failed to allocate memory for paths");
+                return;
+            }
+            for (int i = 0; i < num_paths; i++)
+            {
+                allowlist->paths[i] = strdup(paths[i]);
+                to_lower_case(allowlist->paths[i]);
+            }
+            allowlist->num_paths = num_paths;
+        }
+
+        rule->allowlist = allowlist;
+
+        // Free copies of keywords and stopwords
         for (int j = 0; j < num_keywords; j++)
         {
             free(keywords[j]);
@@ -282,8 +389,6 @@ void load_config(const char *path)
             config->num_words_in_dictionary++;
         }
     }
-
-    printf("Total rules: %d\n", num_rules);
 
     config->dictionary = (unsigned char **)malloc(config->num_words_in_dictionary * sizeof(unsigned char *));
     if (config->dictionary == NULL)
@@ -310,16 +415,22 @@ void load_config(const char *path)
     return;
 }
 
+// discord_client_secret = '8dyfuiRyq=vVc3RRr_edRk-fK__'
+
 int contains_stopword(char *capture, Rule *rule)
 {
-    if (rule->num_stopwords == 0)
+    if (rule->allowlist == NULL)
+    {
+        return 0;
+    }
+    if (rule->allowlist->num_stopwords == 0)
     {
         return 0;
     }
 
-    for (int i = 0; i < rule->num_stopwords; i++)
+    for (int i = 0; i < rule->allowlist->num_stopwords; i++)
     {
-        if (strstr(capture, rule->stopwords[i]) != NULL)
+        if (strstr(capture, rule->allowlist->stopwords[i]) != NULL)
         {
             return 1;
         }

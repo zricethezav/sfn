@@ -10,6 +10,24 @@
 
 #define CASE_INSENSITIVE 1
 
+/* Allowlist structure */
+typedef struct
+{
+  char *description;
+
+  char *regex_target;
+
+  char **regexes;
+  OnigRegex **compiled_regexes;
+  int num_regexes;
+
+  char **stopwords;
+  int num_stopwords;
+
+  char **paths;
+  int num_paths;
+} allowlist_t;
+
 /* Rule structure */
 typedef struct
 {
@@ -23,6 +41,8 @@ typedef struct
   int num_keywords;
   int num_stopwords;
   int ref_count; // Reference count
+  allowlist_t *allowlist;
+
 } Rule;
 
 /* A structure to hold a list of rules associated with a keyword */

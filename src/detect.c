@@ -70,6 +70,25 @@ int detect_secrets(char *buffer, char *file_path, int start_line_number, size_t 
             }
             add_to_hash(&seen_rules_table, rule->id);
 
+            // Check if the rule is allowed in the current file
+            int allowed = 0;
+            if (rule->allowlist->num_paths > 0)
+            {
+                for (int i = 0; i < rule->allowlist->num_paths; i++)
+                {
+                    if (fnmatch(rule->allowlist->paths[i], file_path, 0) == 0)
+                    {
+                        printf("skipping because %s\n", rule->allowlist->paths[i]);
+                        allowed = 1;
+                        break;
+                    }
+                }
+            }
+            if (allowed)
+            {
+                continue;
+            }
+
             UChar *start = (UChar *)buffer;
             UChar *end = (UChar *)(buffer + bytes_read);
             UChar *search_start = start;
@@ -117,7 +136,7 @@ int detect_secrets(char *buffer, char *file_path, int start_line_number, size_t 
 
                     // Check if the capture group contains a stopword
                     int stopword_present = 0;
-                    if (rule->num_stopwords > 0)
+                    if (rule->allowlist->num_stopwords > 0)
                     {
                         // Convert the capture to lowercase for comparing with stopwords
                         memcpy(lower_capture, (char *)start + capture_start,

@@ -19,6 +19,11 @@ keywords = [
     "key","api","token","secret","client","passwd","password","auth","access",
 ]
 entropy=3.5
+
+[rules.allowlist]
+paths = [
+    "*/**.md",
+]
 stopwords = [
     "000000",
     "aaaaaa",
