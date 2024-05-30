@@ -72,6 +72,9 @@ typedef struct
   /* Aho-Corasick root node */
   ac_node *root;
 
+  /* TODO Global Allowlist */
+  allowlist_t *allowlist;
+
 } Config_t;
 
 // Global config

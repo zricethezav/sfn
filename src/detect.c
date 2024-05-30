@@ -76,6 +76,7 @@ int detect_secrets(char *buffer, char *file_path, int start_line_number, size_t 
             {
                 for (int i = 0; i < rule->allowlist->num_paths; i++)
                 {
+                    // todo fnmatch may be slower than regex
                     if (fnmatch(rule->allowlist->paths[i], file_path, 0) == 0)
                     {
                         printf("skipping because %s\n", rule->allowlist->paths[i]);
