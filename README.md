@@ -17,7 +17,7 @@ make clean && make
 git log -p | ./bin/sfn stdin
 ```
 ### Can I use my old gitleaks config?
-Kinda, you gotta make some changes though. Check out the config in this repo. Allowlists aren't implemented yet.
+Yea, but some things aren't implemented yet.
 
 ### Why no `git` command?
 I have a branch attempting to do this using libgit2 and also piping `git log -p` in but performance isn't that impressive. If someone wants to contribute...sick.
