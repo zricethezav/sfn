@@ -8,6 +8,8 @@ I wanted to write something in C.
 
 ### How do I run this?
 ```
+git submodule init
+git submodule update
 make clean && make
 
 ./bin/sfn directory <path-to-target>
