@@ -10,6 +10,20 @@
 
 title = "gitleaks config"
 
+[allowlist]
+description = "global allow lists"
+paths = [
+    '''gitleaks.toml''',
+    '''(.*?)(jpg|gif|doc|docx|zip|xls|pdf|bin|svg|socket|vsidx|v2|suo|wsuo|.dll|pdb|exe)$''',
+    '''(go.mod|go.sum)$''',
+    '''gradle.lockfile''',
+    '''node_modules''',
+    '''package-lock.json''',
+    '''yarn.lock''',
+    '''pnpm-lock.yaml''',
+    '''Database.refactorlog''',
+    '''vendor''',
+]
 
 [[rules]]
 id = "generic-api-key"
@@ -19,6 +33,11 @@ keywords = [
     "key","api","token","secret","client","passwd","password","auth","access",
 ]
 entropy=3.5
+
+[rules.allowlist]
+paths = [
+    "*/**.md",
+]
 stopwords = [
     "000000",
     "aaaaaa",

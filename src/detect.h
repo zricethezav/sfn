@@ -11,6 +11,7 @@
 #include <ctype.h>
 #include <math.h>
 #include <sys/stat.h>
+#include <fnmatch.h>
 
 typedef struct
 {
